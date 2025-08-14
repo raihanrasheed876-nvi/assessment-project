@@ -15,6 +15,10 @@ app.config['SECRET_KEY'] = 'change-me'
 
 db = SQLAlchemy(app)
 
+with app.app_context():
+    db.create_all()
+
+
 class Link(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(12), unique=True, nullable=False, index=True)
@@ -48,9 +52,11 @@ def generate_code(n=6) -> str:
         if not Link.query.filter_by(code=code).first():
             return code
 
-@app.before_first_request
-def init_db():
-    db.create_all()
+@app.before_request
+def init():
+    if not hasattr(app, 'db_initialized'):
+        db.create_all()
+        app.db_initialized = True
 
 @app.route('/', methods=['GET'])
 def home():
