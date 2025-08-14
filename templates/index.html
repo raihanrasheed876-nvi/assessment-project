@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Simple URL Shortener</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-area">
+              {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('shorten') }}" method="POST" class="card">
+            <label for="long_url">Long URL</label>
+            <input id="long_url" name="long_url" type="url" placeholder="https://example.com/very/long/url" required>
+
+            <label for="custom_code">Custom short code (optional)</label>
+            <input id="custom_code" name="custom_code" type="text" placeholder="e.g., my-link (3–20 chars)">
+
+            <button type="submit">Shorten</button>
+        </form>
+
+        <h2>Recent Links</h2>
+        <div class="list">
+            {% if recent %}
+              {% for item in recent %}
+                <div class="list-row">
+                  <div class="col grow">
+                    <div class="mono">{{ request.host_url }}{{ item.code }}</div>
+                    <a class="truncate" href="{{ item.long_url }}" target="_blank" rel="noopener">{{ item.long_url }}</a>
+                  </div>
+                  <div class="col small center">{{ item.clicks }} clicks</div>
+                  <div class="col small">
+                    <button class="copy-btn" data-code="{{ item.code }}">Copy</button>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p>No links yet. Create one above.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+      function copyText(text) {
+        navigator.clipboard.writeText(text);
+      }
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const url = window.location.origin + '/' + btn.dataset.code;
+          copyText(url);
+          btn.textContent = 'Copied!';
+          setTimeout(() => btn.textContent = 'Copy', 1200);
+        });
+      });
+    </script>
+</body>
+</html>
